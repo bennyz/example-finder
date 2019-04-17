@@ -36,49 +36,61 @@ func New(token string, resultsPerPage int, storageProvider persistence.Storage) 
 }
 
 // Search searches code using the github api
-func (c *client) Search(query string, lang string) []string {
+func (c *client) Search(query string, lang string) map[int64]*backends.Result {
 
 	opt := &github.SearchOptions{
 		ListOptions: github.ListOptions{PerPage: c.resultsPerPage},
 	}
 
-	var repos []string
 	results, _, err := c.Client.Search.Code(c.ctx, query, opt)
+	repos := make(map[int64]*backends.Result)
+
 	if err != nil {
 		log.Fatal("Failed to fetch results", err)
 	}
 
-	for _, result := range results.CodeResults {
-		repos = append(repos, result.GetRepository().GetHTMLURL())
-		repoID := result.GetRepository().GetID()
-		fmt.Printf("Fetching value for: %v", repoID)
+	for _, codeResult := range results.CodeResults {
+		repoID := codeResult.GetRepository().GetID()
+		fmt.Printf("Fetching value for: %v\n", repoID)
 		value, err := storage.Get(repoID)
 		fmt.Printf("Found value: %s for repoID: %v\n", value, repoID)
 
-		if err != nil || value == "" {
-			log.Printf("Value not found in DB, requesting amount of stars...\n")
+		if err != nil || value == nil {
 			repo, _, err := c.Client.Repositories.GetByID(c.ctx, repoID)
-			log.Printf("repoID %v has %d\n", repoID, repo.GetStargazersCount())
 
 			if err != nil {
-				log.Printf("Failed to fetch repo with ID: %v\n", repoID)
+				log.Printf("Could not fetch repo %v \n", repoID)
 			}
 
-			repoData := backends.Result{
-				RepoName: repo.GetName(),
-				RepoURL:  repo.GetURL(),
-				FileURL:  result.GetPath(),
-				Stars:    repo.GetStargazersCount(),
-			}
+			log.Printf("Value not found in DB, requesting amount of stars...\n")
+			value = handleMissingRepo(repo)
+		}
+		result := backends.Result{}
+		err = json.Unmarshal(value, &result)
 
-			bytes, err := json.Marshal(&repoData)
-			if err != nil {
-				log.Fatal(err)
-			}
-			storage.Save(repoID, bytes)
+		if err != nil {
+			log.Fatal(err)
 		}
 
+		repos[repoID] = &result
 	}
 
 	return repos
+}
+
+func handleMissingRepo(repo *github.Repository) []byte {
+	repoData := backends.Result{
+		RepoName: repo.GetName(),
+		RepoURL:  repo.GetURL(),
+		Stars:    repo.GetStargazersCount(),
+	}
+
+	bytes, err := json.Marshal(&repoData)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	storage.Save(repo.GetID(), bytes)
+
+	return bytes
 }

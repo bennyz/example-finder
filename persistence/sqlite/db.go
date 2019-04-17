@@ -53,18 +53,18 @@ func (s *sqlite) Save(key int64, value []byte) (int64, error) {
 	return key, nil
 }
 
-func (s *sqlite) Get(key int64) (string, error) {
+func (s *sqlite) Get(key int64) ([]byte, error) {
 	stmt, err := s.Prepare(getKey)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var value string
+	var value []byte
 	err = stmt.QueryRow(key).Scan(&value)
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Printf("Fetched %v", value)
+		log.Printf("Fetched for key %v", key)
 	}
 
 	defer stmt.Close()

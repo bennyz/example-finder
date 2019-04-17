@@ -7,12 +7,11 @@ import (
 	"log"
 	"strings"
 
-	"github.com/spf13/viper"
-
 	"github.com/bennyz/example-finder/backend/rest"
 	"github.com/bennyz/example-finder/persistence"
 	"github.com/bennyz/example-finder/persistence/sqlite"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -51,8 +50,9 @@ var searchCmd = &cobra.Command{
 			client, _ := rest.New(token, resultsPerPage, initDb())
 			results := client.Search(args[0], lang)
 
-			for _, result := range results {
-				fmt.Println(result)
+			fmt.Println()
+			for _, v := range results {
+				fmt.Printf("repo: %s \n\t%s\n\tstars: %d\n", v.RepoName, v.RepoURL, v.Stars)
 			}
 		}
 	},

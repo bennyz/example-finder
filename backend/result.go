@@ -4,6 +4,5 @@ package backends
 type Result struct {
 	RepoName string
 	RepoURL  string
-	FileURL  string
 	Stars    int
 }

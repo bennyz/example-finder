@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/bennyz/example-finder/util"
+
 	backends "github.com/bennyz/example-finder/backend"
 
 	"github.com/bennyz/example-finder/persistence"
@@ -20,6 +22,7 @@ type client struct {
 }
 
 var storage persistence.Storage
+var cachedRepos []*backends.Result
 
 // New creats an new instance of the rest client
 func New(token string, resultsPerPage int, storageProvider persistence.Storage) (backends.Backend, error) {
@@ -35,44 +38,46 @@ func New(token string, resultsPerPage int, storageProvider persistence.Storage) 
 	return &client{githubClient, ctx, resultsPerPage}, nil
 }
 
-// Search searches code using the github api
-func (c *client) Search(query string, lang string) map[int64]*backends.Result {
+var repos map[int64]*backends.Result
 
+// Search searches code using the github api
+func (c *client) Search(query, lang string) map[int64]*backends.Result {
 	opt := &github.SearchOptions{
 		ListOptions: github.ListOptions{PerPage: c.resultsPerPage},
 	}
 
 	results, _, err := c.Client.Search.Code(c.ctx, query, opt)
-	repos := make(map[int64]*backends.Result)
-
 	if err != nil {
 		log.Fatal("Failed to fetch results", err)
 	}
 
+	var repoIDs []int64
 	for _, codeResult := range results.CodeResults {
-		repoID := codeResult.GetRepository().GetID()
-		fmt.Printf("Fetching value for: %v\n", repoID)
-		value, err := storage.Get(repoID)
-		fmt.Printf("Found value: %s for repoID: %v\n", value, repoID)
+		repoIDs = append(repoIDs, codeResult.GetRepository().GetID())
+	}
 
-		if err != nil || value == nil {
+	values, err := storage.Get(repoIDs)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	cachedRepoIds := initializeCache(values)
+	missingRepoIDs := util.Difference(cachedRepoIds, repoIDs)
+	var missingRepos []*backends.Result
+	for _, repoID := range missingRepoIDs {
+		if _, ok := repos[repoID]; !ok {
 			repo, _, err := c.Client.Repositories.GetByID(c.ctx, repoID)
-
 			if err != nil {
 				log.Printf("Could not fetch repo %v \n", repoID)
 			}
+			fmt.Printf("Fetched missing repo %v\n", repo.GetName())
 
-			log.Printf("Value not found in DB, requesting amount of stars...\n")
-			value = handleMissingRepo(repo)
+			value := handleMissingRepo(repo)
+			missingRepoResult := backends.Result{}
+			err = json.Unmarshal(value, &missingRepoResult)
+			missingRepos = append(missingRepos, &missingRepoResult)
+			repos[repoID] = &missingRepoResult
 		}
-		result := backends.Result{}
-		err = json.Unmarshal(value, &result)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		repos[repoID] = &result
 	}
 
 	return repos
@@ -80,8 +85,9 @@ func (c *client) Search(query string, lang string) map[int64]*backends.Result {
 
 func handleMissingRepo(repo *github.Repository) []byte {
 	repoData := backends.Result{
+		RepoID:   repo.GetID(),
 		RepoName: repo.GetName(),
-		RepoURL:  repo.GetURL(),
+		RepoURL:  repo.GetHTMLURL(),
 		Stars:    repo.GetStargazersCount(),
 	}
 
@@ -93,4 +99,22 @@ func handleMissingRepo(repo *github.Repository) []byte {
 	storage.Save(repo.GetID(), bytes)
 
 	return bytes
+}
+
+func initializeCache(values []persistence.JSONValue) []int64 {
+	repos = make(map[int64]*backends.Result)
+
+	var results []int64
+	for _, value := range values {
+		result := backends.Result{}
+		err := json.Unmarshal(value, &result)
+		if err != nil {
+			log.Println(err)
+		}
+		cachedRepos = append(cachedRepos, &result)
+		results = append(results, result.RepoID)
+		repos[result.RepoID] = &result
+	}
+
+	return results
 }

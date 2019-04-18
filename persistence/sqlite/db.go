@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"log"
 
+	"github.com/bennyz/example-finder/util"
+
 	"github.com/bennyz/example-finder/persistence"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -11,7 +13,7 @@ import (
 const (
 	createTable = `CREATE TABLE IF NOT EXISTS repo_data(repo_id INTEGER PRIMARY KEY, data JSON1)`
 	insertKey   = `INSERT INTO repo_data(repo_id, data) values(?, ?)`
-	getKey      = `SELECT data FROM repo_data WHERE repo_id = ?`
+	getKeys     = `SELECT data FROM repo_data WHERE repo_id IN (?)`
 )
 
 type sqlite struct {
@@ -34,7 +36,7 @@ func New(path string) (persistence.Storage, error) {
 	return &sqlite{db}, nil
 }
 
-func (s *sqlite) Save(key int64, value []byte) (int64, error) {
+func (s *sqlite) Save(key int64, value persistence.JSONValue) (int64, error) {
 	tx, err := s.Begin()
 	if err != nil {
 		log.Fatal(err)
@@ -53,18 +55,16 @@ func (s *sqlite) Save(key int64, value []byte) (int64, error) {
 	return key, nil
 }
 
-func (s *sqlite) Get(key int64) ([]byte, error) {
-	stmt, err := s.Prepare(getKey)
+func (s *sqlite) Get(keys []int64) ([]persistence.JSONValue, error) {
+	stmt, err := s.Prepare(getKeys)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var value []byte
-	err = stmt.QueryRow(key).Scan(&value)
-	if err != nil {
-		log.Println(err)
-	} else {
-		log.Printf("Fetched for key %v", key)
+	var value []persistence.JSONValue
+	err = stmt.QueryRow(util.SliceToString(keys)).Scan(&value)
+	if err == nil {
+		log.Printf("Fetched for keys %v", keys)
 	}
 
 	defer stmt.Close()

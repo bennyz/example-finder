@@ -21,7 +21,10 @@ type client struct {
 	resultsPerPage int
 }
 
-var storage persistence.Storage
+var (
+	storage persistence.Storage
+	repos   map[int64]*backends.Result
+)
 
 // New creats an new instance of the rest client
 func New(token string, resultsPerPage int, storageProvider persistence.Storage) (backends.Backend, error) {
@@ -36,8 +39,6 @@ func New(token string, resultsPerPage int, storageProvider persistence.Storage) 
 
 	return &client{githubClient, ctx, resultsPerPage}, nil
 }
-
-var repos map[int64]*backends.Result
 
 // Search searches code using the github api
 func (c *client) Search(query, lang string) map[int64]*backends.Result {

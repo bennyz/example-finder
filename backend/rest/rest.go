@@ -22,7 +22,6 @@ type client struct {
 }
 
 var storage persistence.Storage
-var cachedRepos []*backends.Result
 
 // New creats an new instance of the rest client
 func New(token string, resultsPerPage int, storageProvider persistence.Storage) (backends.Backend, error) {
@@ -111,7 +110,7 @@ func initializeCache(values []persistence.JSONValue) []int64 {
 		if err != nil {
 			log.Println(err)
 		}
-		cachedRepos = append(cachedRepos, &result)
+
 		results = append(results, result.RepoID)
 		repos[result.RepoID] = &result
 	}

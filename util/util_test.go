@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestIntersection(t *testing.T) {
+func TestDifference(t *testing.T) {
 	arr1 := []int64{1, 2, 3, 4, 5}
 	arr2 := []int64{4, 5, 7}
 	got := Difference(arr1, arr2)

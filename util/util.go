@@ -7,10 +7,10 @@ import (
 
 // Difference returns the difference between two arrays
 func Difference(arr1, arr2 []int64) (result []int64) {
-	hash := make(map[int64]bool)
+	hash := make(map[int64]struct{})
 
 	for _, item := range arr1 {
-		hash[item] = true
+		hash[item] = struct{}{}
 	}
 
 	for _, item := range arr2 {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/bennyz/example-finder/util"
 
@@ -80,7 +81,9 @@ func (c *client) Search(query, lang string) []*backends.Result {
 		}
 	}
 
-	return util.MapToSlice(repos)
+	reposSlice := util.MapToSlice(repos)
+	sort.Sort(backends.ByStars(reposSlice))
+	return reposSlice
 }
 
 func handleMissingRepo(repo *github.Repository) []byte {

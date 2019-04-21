@@ -41,7 +41,7 @@ func New(token string, resultsPerPage int, storageProvider persistence.Storage) 
 }
 
 // Search searches code using the github api
-func (c *client) Search(query, lang string) map[int64]*backends.Result {
+func (c *client) Search(query, lang string) []*backends.Result {
 	opt := &github.SearchOptions{
 		ListOptions: github.ListOptions{PerPage: c.resultsPerPage},
 	}
@@ -80,7 +80,7 @@ func (c *client) Search(query, lang string) map[int64]*backends.Result {
 		}
 	}
 
-	return repos
+	return util.MapToSlice(repos)
 }
 
 func handleMissingRepo(repo *github.Repository) []byte {

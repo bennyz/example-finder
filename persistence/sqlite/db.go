@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 
+	"fmt"
 	"github.com/bennyz/example-finder/util"
 
 	"github.com/bennyz/example-finder/persistence"
@@ -13,7 +14,7 @@ import (
 const (
 	createTable = `CREATE TABLE IF NOT EXISTS repo_data(repo_id INTEGER PRIMARY KEY, data JSON1)`
 	insertKey   = `INSERT INTO repo_data(repo_id, data) values(?, ?)`
-	getKeys     = `SELECT data FROM repo_data WHERE repo_id IN (?)`
+	getKeys     = `SELECT data FROM repo_data WHERE repo_id IN (%s)`
 )
 
 type sqlite struct {
@@ -56,18 +57,27 @@ func (s *sqlite) Save(key int64, value persistence.JSONValue) (int64, error) {
 }
 
 func (s *sqlite) Get(keys []int64) ([]persistence.JSONValue, error) {
-	stmt, err := s.Prepare(getKeys)
+	var result []persistence.JSONValue
+
+	var keysRaw []int
+	for key := range keys {
+		keysRaw = append(keysRaw, key)
+	}
+
+	query := fmt.Sprintf(getKeys, util.SliceToString(keys))
+	rows, err := s.Query(query)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Failed querying rows. Query: %v, Keys: %v, error: %v", query, keys, err);
+	}
+	
+	for rows.Next() {
+		var value persistence.JSONValue
+		err := rows.Scan(&value)
+		if (err != nil) {
+			log.Fatal("Failed scanning row. Rows: %v, err %v", rows, err);
+		}
+		result = append(result, value)
 	}
 
-	var value []persistence.JSONValue
-	err = stmt.QueryRow(util.SliceToString(keys)).Scan(&value)
-	if err == nil {
-		log.Printf("Fetched for keys %v", keys)
-	}
-
-	defer stmt.Close()
-
-	return value, err
+	return result, err
 }

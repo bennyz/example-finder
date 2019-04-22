@@ -14,7 +14,6 @@ require (
 	github.com/graphql-go/graphql v0.7.8 // indirect
 	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/ianlancetaylor/demangle v0.0.0-20181102032728-5e5cf60278f6 // indirect
-	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/kisielk/errcheck v1.2.0 // indirect
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0

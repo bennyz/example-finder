@@ -4,6 +4,12 @@
 Dependencies:
 ```
 gcc (required for sqlite3 support)
+
+Fedora:
+dnf install -y gcc
+
+Windows:
+http://mingw-w64.org/doku.php/download#mingw-builds
 ```
 build:
 
@@ -24,6 +30,9 @@ go test ./...
   token   - Github API token, see https://github.com/settings/tokens - should be inside .token file
   mode    - currently only REST mode is supported, a future plan is to support GraphQL as well
   results - number of results per page to return (default 30)
+
+Example usage:
+./example-finder search go-pg -r 100 -t ABC
 ```
 
 ## Limitations

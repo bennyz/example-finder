@@ -57,7 +57,6 @@ func (s *sqlite) Save(key int64, value persistence.JSONValue) (int64, error) {
 }
 
 func (s *sqlite) Get(keys []int64) ([]persistence.JSONValue, error) {
-	var result []persistence.JSONValue
 
 	var keysRaw []int
 	for key := range keys {
@@ -69,6 +68,8 @@ func (s *sqlite) Get(keys []int64) ([]persistence.JSONValue, error) {
 	if err != nil {
 		log.Fatal("Failed querying rows. Query: %v, Keys: %v, error: %v", query, keys, err)
 	}
+
+	var result []persistence.JSONValue
 
 	for rows.Next() {
 		var value persistence.JSONValue

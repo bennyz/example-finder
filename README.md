@@ -33,6 +33,9 @@ go test ./...
 
 Example usage:
 ./example-finder search go-pg -r 100 -t ABC
+
+NOTE:
+'ABC' is the token text, if it is not passed, the content of the .token file will be used instead
 ```
 
 ## Limitations

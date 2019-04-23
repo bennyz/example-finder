@@ -51,8 +51,8 @@ var searchCmd = &cobra.Command{
 			results := client.Search(args[0], lang)
 
 			fmt.Println()
-			for _, v := range results {
-				fmt.Printf("repo: %s \n\t%s\n\tstars: %d\n", v.RepoName, v.RepoURL, v.Stars)
+			for _, r := range results {
+				fmt.Printf("repo: %s \n\t%s\n\tstars: %d\n", r.RepoName, r.RepoURL, r.Stars)
 			}
 		}
 	},

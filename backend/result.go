@@ -7,3 +7,18 @@ type Result struct {
 	RepoURL  string
 	Stars    int
 }
+
+// ByStars a type to sort results by stars
+type ByStars []*Result
+
+func (s ByStars) Len() int {
+	return len(s)
+}
+
+func (s ByStars) Swap(i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func (s ByStars) Less(i, j int) bool {
+	return s[i].Stars > s[j].Stars
+}

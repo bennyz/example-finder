@@ -3,6 +3,8 @@ package util
 import (
 	"strconv"
 	"strings"
+
+	backends "github.com/bennyz/example-finder/backend"
 )
 
 // Difference returns the difference between two arrays
@@ -30,4 +32,15 @@ func SliceToString(arr []int64) string {
 	}
 
 	return strings.Join(temp, ",")
+}
+
+// MapToSlice converts map's values to a slice
+func MapToSlice(m map[int64]*backends.Result) []*backends.Result {
+	s := make([]*backends.Result, 0, len(m))
+
+	for _, v := range m {
+		s = append(s, v)
+	}
+
+	return s
 }

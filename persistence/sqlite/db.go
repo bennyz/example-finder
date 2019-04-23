@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"fmt"
+
 	"github.com/bennyz/example-finder/util"
 
 	"github.com/bennyz/example-finder/persistence"
@@ -66,7 +67,7 @@ func (s *sqlite) Get(keys []int64) ([]persistence.JSONValue, error) {
 	query := fmt.Sprintf(getKeys, util.SliceToString(keys))
 	rows, err := s.Query(query)
 	if err != nil {
-		log.Fatal("Failed querying rows. Query: %v, Keys: %v, error: %v", query, keys, err)
+		log.Fatal("Failed querying rows. Query:", query, "Keys", keys, "error:", err)
 	}
 
 	var result []persistence.JSONValue
@@ -75,7 +76,7 @@ func (s *sqlite) Get(keys []int64) ([]persistence.JSONValue, error) {
 		var value persistence.JSONValue
 		err := rows.Scan(&value)
 		if err != nil {
-			log.Fatal("Failed scanning row. Rows: %v, err %v", rows, err)
+			log.Fatal("Failed scanning row. Rows:", rows, "err", err)
 		}
 		result = append(result, value)
 	}

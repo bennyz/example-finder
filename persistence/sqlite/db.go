@@ -67,14 +67,14 @@ func (s *sqlite) Get(keys []int64) ([]persistence.JSONValue, error) {
 	query := fmt.Sprintf(getKeys, util.SliceToString(keys))
 	rows, err := s.Query(query)
 	if err != nil {
-		log.Fatal("Failed querying rows. Query: %v, Keys: %v, error: %v", query, keys, err);
+		log.Fatal("Failed querying rows. Query: %v, Keys: %v, error: %v", query, keys, err)
 	}
-	
+
 	for rows.Next() {
 		var value persistence.JSONValue
 		err := rows.Scan(&value)
-		if (err != nil) {
-			log.Fatal("Failed scanning row. Rows: %v, err %v", rows, err);
+		if err != nil {
+			log.Fatal("Failed scanning row. Rows: %v, err %v", rows, err)
 		}
 		result = append(result, value)
 	}

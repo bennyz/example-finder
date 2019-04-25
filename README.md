@@ -26,7 +26,7 @@ go test ./...
 ## Usage:
 ```
 ./example-finder search TEXT [-l|--lang LANG] [-t|--token TOKEN] [-m|--mode MODE] [-r|--results num]
-  lang    - language to return results in (not implemented yet)
+  lang    - language to return results in
   token   - Github API token, see https://github.com/settings/tokens - should be inside .token file
   mode    - currently only REST mode is supported, a future plan is to support GraphQL as well
   results - number of results per page to return (default 30)

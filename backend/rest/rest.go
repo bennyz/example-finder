@@ -16,10 +16,16 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// ClientOptions holds the options with which to create the REST client
+type ClientOptions struct {
+	ResultsPerPage int
+	Lang           string
+}
+
 type client struct {
 	*github.Client
-	ctx            context.Context
-	resultsPerPage int
+	ctx context.Context
+	*ClientOptions
 }
 
 var (
@@ -28,7 +34,7 @@ var (
 )
 
 // New creats an new instance of the rest client
-func New(token string, resultsPerPage int, storageProvider persistence.Storage) (backends.Backend, error) {
+func New(token string, co *ClientOptions, storageProvider persistence.Storage) (backends.Backend, error) {
 	storage = storageProvider
 	ctx := context.Background()
 	ts := oauth2.StaticTokenSource(
@@ -38,13 +44,17 @@ func New(token string, resultsPerPage int, storageProvider persistence.Storage) 
 
 	githubClient := github.NewClient(tc)
 
-	return &client{githubClient, ctx, resultsPerPage}, nil
+	return &client{githubClient, ctx, co}, nil
 }
 
 // Search searches code using the github api
 func (c *client) Search(query, lang string) []*backends.Result {
 	opt := &github.SearchOptions{
-		ListOptions: github.ListOptions{PerPage: c.resultsPerPage},
+		ListOptions: github.ListOptions{PerPage: c.ResultsPerPage},
+	}
+
+	if lang != "" {
+		query = fmt.Sprint("language:", lang, " ", query)
 	}
 
 	results, _, err := c.Client.Search.Code(c.ctx, query, opt)

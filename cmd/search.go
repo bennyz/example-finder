@@ -46,8 +46,12 @@ var searchCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		switch mode {
 		case "rest":
+			co := rest.ClientOptions{
+				ResultsPerPage: resultsPerPage,
+				Lang:           lang,
+			}
 			// TODO: handle errors and stuff
-			client, _ := rest.New(token, resultsPerPage, initDb())
+			client, _ := rest.New(token, &co, initDb())
 			results := client.Search(args[0], lang)
 
 			fmt.Println()

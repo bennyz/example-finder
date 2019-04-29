@@ -29,8 +29,9 @@ type client struct {
 }
 
 var (
-	storage persistence.Storage
-	repos   map[int64]*backends.Result
+	storage   persistence.Storage
+	repos     map[int64]*backends.Result
+	repoPaths = make(map[int64][]string)
 )
 
 // New creats an new instance of the rest client
@@ -62,9 +63,12 @@ func (c *client) Search(query, lang string) []*backends.Result {
 		log.Fatal("Failed to fetch results", err)
 	}
 
+	// Collect all repo IDs from the results
 	var repoIDs []int64
 	for _, codeResult := range results.CodeResults {
-		repoIDs = append(repoIDs, codeResult.GetRepository().GetID())
+		repoID := codeResult.GetRepository().GetID()
+		repoIDs = append(repoIDs, repoID)
+		repoPaths[repoID] = append(repoPaths[repoID], codeResult.GetHTMLURL())
 	}
 
 	values, err := storage.Get(repoIDs)
@@ -73,6 +77,7 @@ func (c *client) Search(query, lang string) []*backends.Result {
 	}
 
 	cachedRepoIds := initializeCache(values)
+
 	missingRepoIDs := util.Difference(cachedRepoIds, repoIDs)
 	var missingRepos []*backends.Result
 	for _, repoID := range missingRepoIDs {
@@ -98,10 +103,11 @@ func (c *client) Search(query, lang string) []*backends.Result {
 
 func handleMissingRepo(repo *github.Repository) []byte {
 	repoData := backends.Result{
-		RepoID:   repo.GetID(),
-		RepoName: repo.GetName(),
-		RepoURL:  repo.GetHTMLURL(),
-		Stars:    repo.GetStargazersCount(),
+		RepoID:    repo.GetID(),
+		RepoName:  repo.GetName(),
+		RepoURL:   repo.GetHTMLURL(),
+		Stars:     repo.GetStargazersCount(),
+		FilePaths: repoPaths[repo.GetID()],
 	}
 
 	bytes, err := json.Marshal(&repoData)
@@ -125,6 +131,7 @@ func initializeCache(values []persistence.JSONValue) []int64 {
 			log.Println(err)
 		}
 
+		result.FilePaths = repoPaths[result.RepoID]
 		results = append(results, result.RepoID)
 		repos[result.RepoID] = &result
 	}

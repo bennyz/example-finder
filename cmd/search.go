@@ -57,6 +57,11 @@ var searchCmd = &cobra.Command{
 			fmt.Println()
 			for _, r := range results {
 				fmt.Printf("repo: %s \n\t%s\n\tstars: %d\n", r.RepoName, r.RepoURL, r.Stars)
+				fmt.Printf("\tfiles:\n")
+				// TODO: extract this
+				for _, path := range r.FilePaths {
+					fmt.Printf("\t %v\n", path)
+				}
 			}
 		}
 	},

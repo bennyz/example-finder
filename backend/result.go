@@ -2,10 +2,11 @@ package backends
 
 // Result hold the result to amount of stars mapping
 type Result struct {
-	RepoID   int64
-	RepoName string
-	RepoURL  string
-	Stars    int
+	RepoID    int64
+	RepoName  string
+	RepoURL   string
+	Stars     int
+	FilePaths []string
 }
 
 // ByStars a type to sort results by stars

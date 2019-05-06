@@ -1,5 +1,7 @@
 # example-finder
 
+Search code on Github with some extra options (sorting, filtering and more)
+
 ## Build:
 Dependencies:
 ```

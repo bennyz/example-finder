@@ -13,9 +13,11 @@ import (
 )
 
 const (
-	createTable = `CREATE TABLE IF NOT EXISTS repo_data(repo_id INTEGER PRIMARY KEY, data JSON1)`
-	insertKey   = `INSERT INTO repo_data(repo_id, data) values(?, ?)`
-	getKeys     = `SELECT data FROM repo_data WHERE repo_id IN (%s)`
+	createTable   = `CREATE TABLE IF NOT EXISTS repo_data(repo_id INTEGER PRIMARY KEY, data JSON1)`
+	truncateTable = `DELETE FROM repo_data`
+
+	insertKey = `INSERT INTO repo_data(repo_id, data) values(?, ?)`
+	getKeys   = `SELECT data FROM repo_data WHERE repo_id IN (%s)`
 )
 
 type sqlite struct {
@@ -82,4 +84,12 @@ func (s *sqlite) Get(keys []int64) ([]persistence.JSONValue, error) {
 	}
 
 	return result, err
+}
+
+func (s *sqlite) Clear() {
+	_, err := s.Exec(truncateTable)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 }

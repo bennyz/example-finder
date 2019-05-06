@@ -9,4 +9,6 @@ type Storage interface {
 
 	// Get JSON values for keys
 	Get(keys []int64) ([]JSONValue, error)
+
+	Clear()
 }

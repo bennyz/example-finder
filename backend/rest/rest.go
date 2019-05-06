@@ -76,13 +76,13 @@ func (c *client) Search(query, lang string) []*backends.Result {
 		repoPaths[repoID] = append(repoPaths[repoID], codeResult.GetHTMLURL())
 	}
 
-	values, err := storage.Get(repoIDs)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	cachedRepoIds := make([]int64, 0, 0)
 	if !c.RefreshDB {
+		values, err := storage.Get(repoIDs)
+		if err != nil {
+			fmt.Println(err)
+		}
+
 		cachedRepoIds = initializeCache(values)
 	}
 

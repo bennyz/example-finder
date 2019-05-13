@@ -37,7 +37,7 @@ var searchCmd = &cobra.Command{
 			return errors.New("Please add a string to search for")
 		}
 
-		if token == "" {
+		if token == "" && readTokenFromFile() == "" {
 			return errors.New("Please provide a token, either with -t or put it in a .token file")
 		}
 
@@ -71,7 +71,7 @@ func init() {
 	viper.SetDefault("token_file", ".token")
 
 	rootCmd.AddCommand(searchCmd)
-	searchCmd.Flags().StringVarP(&token, "token", "t", readTokenFromFile(), "string to search")
+	searchCmd.Flags().StringVarP(&token, "token", "t", "", "string to search")
 	searchCmd.Flags().StringVarP(&lang, "lang", "l", "", "language")
 	searchCmd.Flags().StringVarP(&mode, "mode", "m", "rest", "search backend")
 	searchCmd.Flags().StringVarP(&dbPath, "db", "", "db.sqlite", "database file")
@@ -84,7 +84,9 @@ func readTokenFromFile() string {
 		log.Fatal(err)
 	}
 
-	return strings.TrimSuffix(string(s), "\n")
+	token = strings.TrimSuffix(string(s), "\n")
+
+	return token
 }
 
 func initDb() persistence.Storage {

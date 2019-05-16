@@ -20,6 +20,7 @@ import (
 type ClientOptions struct {
 	ResultsPerPage int
 	Lang           string
+	RefreshDB      bool
 }
 
 type client struct {
@@ -30,7 +31,7 @@ type client struct {
 
 var (
 	storage   persistence.Storage
-	repos     map[int64]*backends.Result
+	repos     = make(map[int64]*backends.Result)
 	repoPaths = make(map[int64][]string)
 )
 
@@ -54,6 +55,10 @@ func (c *client) Search(query, lang string) []*backends.Result {
 		ListOptions: github.ListOptions{PerPage: c.ResultsPerPage},
 	}
 
+	if c.RefreshDB {
+		storage.Clear()
+	}
+
 	if lang != "" {
 		query = fmt.Sprint("language:", lang, " ", query)
 	}
@@ -71,12 +76,15 @@ func (c *client) Search(query, lang string) []*backends.Result {
 		repoPaths[repoID] = append(repoPaths[repoID], codeResult.GetHTMLURL())
 	}
 
-	values, err := storage.Get(repoIDs)
-	if err != nil {
-		fmt.Println(err)
-	}
+	cachedRepoIds := make([]int64, 0, 0)
+	if !c.RefreshDB {
+		values, err := storage.Get(repoIDs)
+		if err != nil {
+			fmt.Println(err)
+		}
 
-	cachedRepoIds := initializeCache(values)
+		cachedRepoIds = initializeCache(values)
+	}
 
 	missingRepoIDs := util.Difference(cachedRepoIds, repoIDs)
 	var missingRepos []*backends.Result
@@ -121,8 +129,6 @@ func handleMissingRepo(repo *github.Repository) []byte {
 }
 
 func initializeCache(values []persistence.JSONValue) []int64 {
-	repos = make(map[int64]*backends.Result)
-
 	var results []int64
 	for _, value := range values {
 		result := backends.Result{}

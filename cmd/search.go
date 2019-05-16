@@ -20,6 +20,7 @@ var (
 	mode           string
 	dbPath         string
 	resultsPerPage int
+	refreshDB      bool
 )
 
 // searchCmd represents the search command
@@ -49,6 +50,7 @@ var searchCmd = &cobra.Command{
 			co := rest.ClientOptions{
 				ResultsPerPage: resultsPerPage,
 				Lang:           lang,
+				RefreshDB:      refreshDB,
 			}
 			// TODO: handle errors and stuff
 			client, _ := rest.New(token, &co, initDb())
@@ -76,6 +78,7 @@ func init() {
 	searchCmd.Flags().StringVarP(&mode, "mode", "m", "rest", "search backend")
 	searchCmd.Flags().StringVarP(&dbPath, "db", "", "db.sqlite", "database file")
 	searchCmd.Flags().IntVarP(&resultsPerPage, "results", "r", 30, "results per page")
+	searchCmd.Flags().BoolVarP(&refreshDB, "refresh-db", "", false, "refresh database")
 }
 
 func readTokenFromFile() string {
